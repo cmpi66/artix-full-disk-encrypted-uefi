@@ -4,23 +4,35 @@ A guide on how to install Artix  with full disk encryption using LUKS1, UEFI and
 
 First we'll securely wipe our drive, this is recommended even if your drives are brand new. Although it will take time even on an NVME drive. The recommended amount of times to pass it through would be three but you decide how many times you want to do it. The reason why we're doing this is to basically write over the free storage space with one's and zero's to make the data unrecoverable for rogue individuals.
 
-`shred --verbose --random-source /dev/urandom --iterations 3 /dev/nvme0n1`
+```
+shred --verbose --random-source /dev/urandom --iterations 3 /dev/nvme0n1
+```
 
 Create two partitions with fdisk one for root and the other for boot and make the boot type efi, give efi about 512Mb or 1GB and the rest to the root partition:
 
-`fdisk /dev/nvme0n1`
+```
+fdisk /dev/nvme0n1
+```
 
 Encrypt and open disk:
 
-`cryptsetup luksFormat --type=luks1 /dev/nvme0n1p2`
+```
+cryptsetup luksFormat --type=luks1 /dev/nvme0n1p2
+```
 
-`cryptsetup luksOpen /dev/nvme0n1p2 crypt`
+```
+cryptsetup luksOpen /dev/nvme0n1p2 crypt
+```
 
 Create the filesystems:
 
-`mkfs.vfat -F32 /dev/nvme0n1p1`
+```
+mkfs.vfat -F32 /dev/nvme0n1p1
+```
 
-`mkfs.btrfs /dev/mapper/crypt`
+```
+mkfs.btrfs /dev/mapper/crypt
+```
 
 ## BTRFS setup 
 
@@ -110,12 +122,16 @@ basestrap /mnt base base-devel openrc elogind-openrc cryptsetup cryptsetup-openr
 
 
 ## If you want qemu extra that can't be basestrapped
-`qemu-full virt-manager virt-viewer dnsmasq vde2 openbsd-netcat bridge-utils libvirt-openrc`
+```
+qemu-full virt-manager virt-viewer dnsmasq vde2 openbsd-netcat bridge-utils libvirt-openrc
+```
 
 
 ## fstab
 
-`fstabgen -U /mnt >> /mnt/etc/fstab`
+```
+fstabgen -U /mnt >> /mnt/etc/fstab
+```
 
 ### BTRFS cont.
 Change this to the right subvol number
@@ -132,8 +148,10 @@ ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 hwclock --systohc
 ```
 
-`vim /etc/locale.gen`
-`locale-gen`
+```
+vim /etc/locale.gen
+locale-gen
+```
 
 ``` 
 echo export LANG="en_US.UTF-8" >> /etc/locale.conf
@@ -142,12 +160,16 @@ echo export LC_COLLATE="C" >> /etc/locale.conf
 
 Edit mkinitcpio config file:
 
-`sed -i "s/modconf block/modconf block encrypt/g" /etc/mkinitcpio.conf`
+```
+sed -i "s/modconf block/modconf block encrypt/g" /etc/mkinitcpio.conf
+```
 
 
 ### BTRFS contd.
 
-`sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /etc/mkinitcpio.conf`
+```
+sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /etc/mkinitcpio.conf
+```
 
 Create key so you won't have to put in your password twice during boot:
 
@@ -189,19 +211,28 @@ echo -e "# Booting with BTRFS subvolume\nGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETE
 
 Rebuild mkinit image:
 
-`mkinitcpio -P`
+```
+mkinitcpio -P
+```
 
 Install Grub:
 
-`grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock`
+```
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock
+```
 
-`grub-mkconfig -o /boot/grub/grub.cfg`
+```
+grub-mkconfig -o /boot/grub/grub.cfg
+```
 
 Add parallel downloads to pacman conf:
 
-`sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /etc/pacman.conf`
+```
+sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /etc/pacman.conf
+```
 
 ## Finalizing, and adding user and services
+
 ```
 passwd
 useradd -m -G users,wheel,audio,video,docker -s /bin/bash USER
@@ -211,7 +242,9 @@ passwd USER
 
 Configure sudoers file to allow wheel sudo access:
 
-`visudo`
+```
+visudo
+```
 
 
 ## APParmor
@@ -223,9 +256,13 @@ echo 'Optimize=compress-fast' | sudo tee -a /etc/apparmor/parser.conf
 
 Add a hostname:
 
-`vim /etc/hostname`
+```
+vim /etc/hostname
+```
 
-`vim /etc/hosts`
+```
+vim /etc/hosts
+```
 
 ```
 127.0.0.1        localhost
@@ -235,9 +272,12 @@ Add a hostname:
 
 Initiate postgresql:
 
-`su - postgres`
+```
+su - postgres
+```
 
-`initdb /var/lib/postgres/data`
+```
+```
 
 ## configure services
 
@@ -280,5 +320,7 @@ reboot
 
 ## afterward if you used a simple password just to get things up and running
 
-`cryptsetup luksChangeKey /dev/nvme0n1p2`
+```
+cryptsetup luksChangeKey /dev/nvme0n1p2
+```
 
