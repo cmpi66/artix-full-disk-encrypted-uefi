@@ -121,13 +121,13 @@ basestrap /mnt base base-devel openrc elogind-openrc cryptsetup cryptsetup-openr
 ```
 
 
-## If you want qemu extra that can't be basestrapped
+## If you want qemu, extra that can't be basestrapped
 ```
 qemu-full virt-manager virt-viewer dnsmasq vde2 openbsd-netcat bridge-utils libvirt-openrc
 ```
 
 
-## fstab
+## Fstab
 
 ```
 fstabgen -U /mnt >> /mnt/etc/fstab
@@ -207,7 +207,7 @@ sed -i "s/#GRUB_ENABLE_CRYPTODISK/GRUB_ENABLE_CRYPTODISK/g" /etc/default/grub
 echo -e "# Booting with BTRFS subvolume\nGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION=true" >> /etc/default/grub
 ```
 
-## mkinit
+## Mkinit
 
 Rebuild mkinit image:
 
@@ -277,9 +277,10 @@ su - postgres
 ```
 
 ```
+initdb /var/lib/postgres/data
 ```
 
-## configure services
+## Configure Services
 
 ```
 rc-service NetworkManager start
@@ -318,7 +319,7 @@ reboot
 ```
 
 
-## afterward if you used a simple password just to get things up and running
+## Afterward if you used a simple password just to get things up and running
 
 ```
 cryptsetup luksChangeKey /dev/nvme0n1p2
